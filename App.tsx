@@ -1,13 +1,12 @@
-import { StatusBar } from 'expo-status-bar';
 import {
   StyleSheet,
   Text,
-  SafeAreaView,
   ActivityIndicator,
-  VirtualizedList,
+  FlatList,
+  Dimensions,
   View,
 } from "react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { UserCard } from "./components/UserCard";
 import { UserFields, UserFilter } from "./models/api";
 import { useUserData } from "./hooks/useUserData";
@@ -19,6 +18,9 @@ export default function App() {
   const [dataStore, setDataStore] = useState<User[]>([]);
   const [apiSeed, setApiSeed] = useState("upduoseed");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const flatListRef = React.useRef<FlatList>(null);
+  const latestYOffset = React.useRef(0);
 
   const filter: UserFilter = { nat: "us" };
   const fields: UserFields[] = ["name", "email", "picture"];
@@ -48,36 +50,37 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {isLoading ? (
         <ActivityIndicator />
       ) : (
-        <VirtualizedList
+        <FlatList
+          ref={flatListRef}
           style={styles.list}
           data={dataStore}
-          initialNumToRender={PAGE_SIZE}
           renderItem={({ item }) => <UserCard user={item} />}
-          keyExtractor={(item: User) => item.email}
-          getItemCount={(data) => data.length} // TODO: get from the state
-          getItem={(data, index) => data[index]}
           // pull to refresh functionality
           refreshing={isLoading}
           onRefresh={onRefresh}
           // infinite scroll functionality
-          onEndReached={() => {
-            console.log("onEndReached");
-
+          onEndReached={(info: { distanceFromEnd: number }) => {
+            console.log("onEndReached", info.distanceFromEnd);
             setCurrentPage(currentPage + 1);
           }}
           onEndReachedThreshold={0.5}
-          // show activity indicator at the bottom while loading more data
-          ListFooterComponent={() => {
-            return isLoading ? <ActivityIndicator /> : null;
+          // maintain scroll position after adding more items
+          onContentSizeChange={(_, height: number) => {
+            console.log("onContentSizeChange", height);
+            if (latestYOffset.current > 0) {
+              // flatListRef.current?.scroll
+            }
+          }}
+          onScroll={(event) => {
+            latestYOffset.current = event.nativeEvent.contentOffset.y;
           }}
         />
       )}
-      <StatusBar style="auto" />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -91,6 +94,7 @@ const styles = StyleSheet.create({
   list: {
     marginTop: 30,
     width: "95%",
+    height: Dimensions.get("window").height - 30,
     marginLeft: "auto",
     marginRight: "auto",
     borderRadius: 15,
