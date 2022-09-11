@@ -1,9 +1,8 @@
 import useSWR from "swr";
 import { RandomUserAPIResponse, UserFields, UserFilter } from "../models/api";
-import staticData from "./staticUserData";
 
-// const BASE_URL = "https://randomuser.me/api/";
-const BASE_URL = "http://localhost:3000/api/";
+const BASE_URL = "https://randomuser.me/api/";
+// const BASE_URL = "http://localhost:3000/api/";
 
 const fetcher = (input: RequestInfo | URL) =>
   fetch(input).then((res) => res.json());
@@ -34,11 +33,8 @@ export function useUserData(
   const { data, error } = useSWR(url.toString(), fetcher);
 
   return {
-    // data: staticData as RandomUserAPIResponse,
     data,
     isLoading: !error && !data,
-    // isLoading: false,
     hasError: error,
-    // hasError: false,
   };
 }

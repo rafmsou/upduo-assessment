@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { UserCard } from "./components/UserCard";
+import { UserCard, CARD_SIZE } from "./components/UserCard";
 import { UserFields, UserFilter } from "./models/api";
 import { useUserData } from "./hooks/useUserData";
 import { User } from "./models/user";
@@ -20,11 +20,10 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const flatListRef = React.useRef<FlatList>(null);
-  const latestYOffset = React.useRef(0);
 
   const filter: UserFilter = { nat: "us" };
   const fields: UserFields[] = ["name", "email", "picture"];
-  const { data, isLoading, hasError } = useUserData(
+  const { data, isLoading } = useUserData(
     filter,
     fields,
     apiSeed,
@@ -45,41 +44,45 @@ export default function App() {
     setApiSeed(Math.random().toString(36).substring(7));
   }, []);
 
-  if (hasError) {
-    return <Text>An error ocurred, try again later.</Text>;
-  }
-
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <ActivityIndicator />
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          style={styles.list}
-          data={dataStore}
-          renderItem={({ item }) => <UserCard user={item} />}
-          // pull to refresh functionality
-          refreshing={isLoading}
-          onRefresh={onRefresh}
-          // infinite scroll functionality
-          onEndReached={(info: { distanceFromEnd: number }) => {
-            console.log("onEndReached", info.distanceFromEnd);
-            setCurrentPage(currentPage + 1);
-          }}
-          onEndReachedThreshold={0.5}
-          // maintain scroll position after adding more items
-          onContentSizeChange={(_, height: number) => {
-            console.log("onContentSizeChange", height);
-            if (latestYOffset.current > 0) {
-              // flatListRef.current?.scroll
+      <FlatList
+        ref={flatListRef}
+        style={styles.list}
+        data={dataStore}
+        renderItem={({ item }) => <UserCard user={item} />}
+        // pull to refresh functionality
+        refreshing={isLoading}
+        onRefresh={onRefresh}
+        // infinite scroll functionality
+        onEndReached={(info: { distanceFromEnd: number }) => {
+          setCurrentPage(currentPage + 1);
+        }}
+        onEndReachedThreshold={0.5}
+        // maintain scroll position after adding more items
+        onContentSizeChange={(_, height: number) => {
+          if (currentPage > 1) {
+            const newIndex = dataStore.length - PAGE_SIZE * 2;
+            if (newIndex > 0) {
+              flatListRef.current?.scrollToIndex({
+                index: newIndex,
+                animated: false,
+              });
             }
-          }}
-          onScroll={(event) => {
-            latestYOffset.current = event.nativeEvent.contentOffset.y;
-          }}
-        />
-      )}
+          }
+        }}
+        getItemLayout={(_, index) => ({
+          length: CARD_SIZE,
+          offset: CARD_SIZE * index,
+          index,
+        })}
+        // show a loading indicator when more items are being loaded
+        ListFooterComponent={() => {
+          return isLoading ? (
+            <ActivityIndicator style={{ margin: 20 }} />
+          ) : null;
+        }}
+      />
     </View>
   );
 }
@@ -87,7 +90,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "blue",
+    backgroundColor: "#1A4380",
     alignItems: "center",
     justifyContent: "center",
   },
