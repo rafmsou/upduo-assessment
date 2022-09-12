@@ -1,6 +1,5 @@
 import {
   StyleSheet,
-  Text,
   ActivityIndicator,
   FlatList,
   Dimensions,
@@ -11,17 +10,16 @@ import { UserCard, CARD_SIZE } from "./components/UserCard";
 import { UserFields, UserFilter } from "./models/api";
 import { useUserData } from "./hooks/useUserData";
 import { User } from "./models/user";
+import Filter from "./components/Filter";
 
 const PAGE_SIZE = 20;
 
 export default function App() {
   const [dataStore, setDataStore] = useState<User[]>([]);
-  const [apiSeed, setApiSeed] = useState("upduoseed");
+  const [apiSeed, setApiSeed] = useState<string | undefined>("upduoseed");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState<UserFilter>({ nat: "us" });
 
-  const flatListRef = React.useRef<FlatList>(null);
-
-  const filter: UserFilter = { nat: "us" };
   const fields: UserFields[] = ["name", "email", "picture"];
   const { data, isLoading } = useUserData(
     filter,
@@ -37,17 +35,24 @@ export default function App() {
         currentPage === 1 ? data.results : [...dataStore, ...data.results]
       );
     }
-  }, [data, currentPage]);
+  }, [data, filter, currentPage]);
 
   const onRefresh = useCallback(() => {
     setCurrentPage(1);
-    setApiSeed(Math.random().toString(36).substring(7));
+    setApiSeed(`random-seed-${Math.random()}`);
   }, []);
 
   return (
     <View style={styles.container}>
+      <Filter
+        onFilterChanged={(key, value) => {
+          setDataStore([]);
+          setCurrentPage(1);
+          setApiSeed(undefined);
+          setFilter({ ...filter, [key]: value });
+        }}
+      />
       <FlatList
-        ref={flatListRef}
         style={styles.list}
         data={dataStore}
         renderItem={({ item }) => <UserCard user={item} />}
@@ -59,23 +64,6 @@ export default function App() {
           setCurrentPage(currentPage + 1);
         }}
         onEndReachedThreshold={0.5}
-        // maintain scroll position after adding more items
-        onContentSizeChange={(_, height: number) => {
-          if (currentPage > 1) {
-            const newIndex = dataStore.length - PAGE_SIZE * 2;
-            if (newIndex > 0) {
-              flatListRef.current?.scrollToIndex({
-                index: newIndex,
-                animated: false,
-              });
-            }
-          }
-        }}
-        getItemLayout={(_, index) => ({
-          length: CARD_SIZE,
-          offset: CARD_SIZE * index,
-          index,
-        })}
         // show a loading indicator when more items are being loaded
         ListFooterComponent={() => {
           return isLoading ? (
@@ -95,7 +83,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   list: {
-    marginTop: 30,
+    marginTop: 10,
     width: "95%",
     height: Dimensions.get("window").height - 30,
     marginLeft: "auto",

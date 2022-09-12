@@ -13,7 +13,7 @@ export const UserCard: React.FC<{ user: User }> = ({ user }) => {
         />
       </View>
       <View style={styles.info}>
-        <Text style={styles.info.username}>
+        <Text style={styles.name}>
           {`${user.name.first} ${user.name.last}`}
         </Text>
         <Text>{user.email}</Text>
@@ -46,9 +46,9 @@ const styles = StyleSheet.create({
   info: {
     display: "flex",
     justifyContent: "space-evenly",
-    username: {
-      fontSize: 15,
-      fontWeight: "bold",
-    },
+  },
+  name: {
+    fontWeight: "bold",
+    fontSize: 15,
   },
 });

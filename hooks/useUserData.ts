@@ -1,8 +1,8 @@
 import useSWR from "swr";
 import { RandomUserAPIResponse, UserFields, UserFilter } from "../models/api";
 
-const BASE_URL = "https://randomuser.me/api/";
-// const BASE_URL = "http://localhost:3000/api/";
+// const BASE_URL = "https://randomuser.me/api/";
+const BASE_URL = "http://localhost:3000/api/";
 
 const fetcher = (input: RequestInfo | URL) =>
   fetch(input).then((res) => res.json());
@@ -10,7 +10,7 @@ const fetcher = (input: RequestInfo | URL) =>
 export function useUserData(
   filter: UserFilter,
   fields: UserFields[],
-  seed: string,
+  seed: string | undefined,
   page: number,
   pageSize: number
 ): { data: RandomUserAPIResponse; isLoading: boolean; hasError: boolean } {
@@ -19,8 +19,10 @@ export function useUserData(
   url.searchParams.append("page", page.toString());
   url.searchParams.append("results", pageSize.toString());
 
-  // add seed to get consistent results
-  url.searchParams.append("seed", seed);
+  // add seed to get consistent results, don't use it for filtering
+  if (seed) {
+    url.searchParams.append("seed", seed);
+  }
 
   // add requested fields
   url.searchParams.append("inc", fields.join(","));
