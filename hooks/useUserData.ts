@@ -1,8 +1,8 @@
 import useSWR from "swr";
 import { RandomUserAPIResponse, UserFields, UserFilter } from "../models/api";
 
-// const BASE_URL = "https://randomuser.me/api/";
-const BASE_URL = "http://localhost:3000/api/";
+const BASE_URL = "https://randomuser.me/api/";
+// const BASE_URL = "http://localhost:3000/api/";
 
 const fetcher = (input: RequestInfo | URL) =>
   fetch(input).then((res) => res.json());

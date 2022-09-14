@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
 
@@ -8,7 +8,7 @@ export default function ({
   onFilterChanged: (key: string, value: string) => void;
 }) {
   const [selectedGender, setSelectedGender] = useState<string | undefined>(
-    undefined
+    "all"
   );
 
   return (
@@ -33,9 +33,9 @@ export default function ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 10,
+    marginTop: 30,
     flexGrow: 1,
-    height: 10,
+    height: 30,
   },
   filter: {
     display: "flex",

@@ -6,7 +6,7 @@ import {
   View,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { UserCard, CARD_SIZE } from "./components/UserCard";
+import { UserCard } from "./components/UserCard";
 import { UserFields, UserFilter } from "./models/api";
 import { useUserData } from "./hooks/useUserData";
 import { User } from "./models/user";
@@ -14,54 +14,73 @@ import Filter from "./components/Filter";
 
 const PAGE_SIZE = 20;
 
+interface State {
+  users: User[];
+  seed?: string;
+  page: number;
+  filter: UserFilter;
+}
+
 export default function App() {
-  const [dataStore, setDataStore] = useState<User[]>([]);
-  const [apiSeed, setApiSeed] = useState<string | undefined>("upduoseed");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState<UserFilter>({ nat: "us" });
+  const [state, setState] = useState<State>({
+    seed: "upduoseed",
+    users: [],
+    page: 1,
+    filter: { nat: "us" },
+  });
 
   const fields: UserFields[] = ["name", "email", "picture"];
   const { data, isLoading } = useUserData(
-    filter,
+    state.filter,
     fields,
-    apiSeed,
-    currentPage,
+    state.seed,
+    state.page,
     PAGE_SIZE
   );
 
   useEffect(() => {
     if (data) {
-      setDataStore(
-        currentPage === 1 ? data.results : [...dataStore, ...data.results]
-      );
+      setState({
+        ...state,
+        users:
+          state.page === 1 ? data.results : [...state.users, ...data.results],
+      });
     }
-  }, [data, filter, currentPage]);
+  }, [data, state.page]);
 
   const onRefresh = useCallback(() => {
-    setCurrentPage(1);
-    setApiSeed(`random-seed-${Math.random()}`);
+    setState({
+      ...state,
+      page: 1,
+      seed: `random-seed-${Math.random()}`,
+    });
   }, []);
 
   return (
     <View style={styles.container}>
       <Filter
         onFilterChanged={(key, value) => {
-          setDataStore([]);
-          setCurrentPage(1);
-          setApiSeed(undefined);
-          setFilter({ ...filter, [key]: value });
+          setState({
+            ...state,
+            users: [],
+            page: 1,
+            seed: undefined,
+            filter: { ...state.filter, [key]: value },
+          });
         }}
       />
       <FlatList
         style={styles.list}
-        data={dataStore}
-        renderItem={({ item }) => <UserCard user={item} />}
+        data={state.users}
+        renderItem={({ item, index }) => <UserCard key={index} user={item} />}
         // pull to refresh functionality
         refreshing={isLoading}
         onRefresh={onRefresh}
         // infinite scroll functionality
         onEndReached={(info: { distanceFromEnd: number }) => {
-          setCurrentPage(currentPage + 1);
+          if (!isLoading) {
+            setState({ ...state, page: state.page + 1 });
+          }
         }}
         onEndReachedThreshold={0.5}
         // show a loading indicator when more items are being loaded
