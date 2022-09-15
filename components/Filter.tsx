@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useState } from "react";
 
@@ -16,15 +16,22 @@ export default function ({
       <View style={styles.filter}>
         <Text style={styles.text}>Gender</Text>
         <Picker
+          style={
+            Platform.OS === "ios"
+              ? styles.pickerIOS
+              : Platform.OS === "android"
+              ? styles.pickerAndroid
+              : {}
+          }
           selectedValue={selectedGender}
           onValueChange={(itemValue) => {
             setSelectedGender(itemValue);
             onFilterChanged("gender", itemValue);
           }}
         >
-          <Picker.Item label="All" value="all" />
-          <Picker.Item label="Male" value="male" />
-          <Picker.Item label="Female" value="female" />
+          <Picker.Item style={{ fontSize: 18 }} label="All" value="all" />
+          <Picker.Item style={{ fontSize: 18 }} label="Male" value="male" />
+          <Picker.Item style={{ fontSize: 18 }} label="Female" value="female" />
         </Picker>
       </View>
     </View>
@@ -33,15 +40,28 @@ export default function ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
+    marginTop: 50,
     flexGrow: 1,
     height: 30,
   },
   filter: {
     display: "flex",
     flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+  pickerAndroid: {
+    color: "#fff",
+    width: 150,
+    marginTop: -15,
+  },
+  pickerIOS: {
+    color: "#fff",
+    width: 200,
+    marginTop: -100,
   },
   text: {
+    fontSize: 18,
     marginRight: 10,
     color: "#fff",
   },

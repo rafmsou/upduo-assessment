@@ -4,6 +4,7 @@ import {
   FlatList,
   Dimensions,
   View,
+  SafeAreaView,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { UserCard } from "./components/UserCard";
@@ -57,7 +58,7 @@ export default function App() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Filter
         onFilterChanged={(key, value) => {
           setState({
@@ -73,6 +74,7 @@ export default function App() {
         style={styles.list}
         data={state.users}
         renderItem={({ item, index }) => <UserCard key={index} user={item} />}
+        keyExtractor={(_, index) => index}
         // pull to refresh functionality
         refreshing={isLoading}
         onRefresh={onRefresh}
@@ -90,7 +92,7 @@ export default function App() {
           ) : null;
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
